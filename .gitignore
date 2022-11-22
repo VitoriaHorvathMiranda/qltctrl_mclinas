@@ -1,2 +1,3 @@
 *.mpileup
 all_samtools_depth.tsv
+.Rproj.user
