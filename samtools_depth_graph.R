@@ -78,11 +78,8 @@ setnames(tidy_usual_chrom, "variable", "population")
 windows <- seq(1, 32073450, by = 40000)
 tidy_usual_chrom[, window := cut(position, windows)] 
 
-window_coverage <- tidy_usual_chrom[, .(mean_coverage = mean(coverage, na.rm = TRUE)), keyby = c("chrom", "population", "window")]
-
 #calcula a media da cobertura por janela
 window_coverage <- tidy_usual_chrom[, .(mean_coverage = mean(coverage, na.rm = TRUE)), keyby = c("chrom", "population", "window")]
-
 
 window_coverage %>% 
 ggplot() +
@@ -93,5 +90,15 @@ ggsave("./plots/hist_mean_coverage_usualChrom.png",
        height = 5, width = 8)
 
 
+coverage_graph <- as_tibble(window_coverage) %>%
+  ggplot() +
+  geom_line(aes(group = population, x = window, y = mean_coverage, color = population)) +
+  facet_wrap(~ chrom, nrow = 2)+
+  labs(x = "position", y = "average coverage")
 
+coverage_graph +
+  scale_x_discrete(breaks = NULL) +
+  coord_cartesian(ylim = c(0, 90))
 
+ggsave("./plots/mean_coverage_usualChrom_perPosition.png",
+       height = 4, width = 8)
