@@ -1,6 +1,5 @@
 library(tidyverse)
 library(data.table)
-library(dtplyr)
 
 coverage_all <- fread(file = "all_samtools_depth.tsv",
                       sep = "\t", header = FALSE)
@@ -14,6 +13,8 @@ variable_names <- c("chrom", "position", "ESC97", "CMD97B", "WVT97",
 setnames(coverage_all, bad_variable_names, variable_names)
 
 chrom_size <- coverage_all[, .(min(position), max(position)), keyby = chrom]
+setnames(chrom_size, c("V1", "V2"), c("min", "max"))
+write_csv(chrom_size, "./summary/chrom_size.csv")
 
 ggplot(data = chrom_size) +
   geom_histogram(aes(x = V2)) +
@@ -63,6 +64,32 @@ tail(stats_per_chrom)
 
 
 # 2L 2R 3L 3R X -----------------------------------------------------------
+
+usual_chrom <- coverage_all[chrom %in% c("2L", "2R", "3R", "3L", "X")]
+
+tidy_usual_chrom <- melt(usual_chrom,
+                           measure = 3:17,
+                           value.name = "coverage") 
+
+setnames(tidy_usual_chrom, "variable", "population")
+
+
+# cria uma coluna nova com o numero da janela
+windows <- seq(1, 32073450, by = 40000)
+tidy_usual_chrom[, window := cut(position, windows)] 
+
+window_coverage <- tidy_usual_chrom[, .(mean_coverage = mean(coverage, na.rm = TRUE)), keyby = c("chrom", "population", "window")]
+
+#calcula a media da cobertura por janela
+window_coverage <- tidy_usual_chrom[, .(mean_coverage = mean(coverage, na.rm = TRUE)), keyby = c("chrom", "population", "window")]
+
+
+window_coverage %>% 
+ggplot() +
+  geom_histogram(aes(mean_coverage)) +
+  facet_wrap(~ population, nrow = 3)
+
+
 
 
 
