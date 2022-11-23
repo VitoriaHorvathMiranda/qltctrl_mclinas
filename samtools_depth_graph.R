@@ -89,6 +89,8 @@ ggplot() +
   geom_histogram(aes(mean_coverage)) +
   facet_wrap(~ population, nrow = 3)
 
+ggsave("./plots/hist_mean_coverage_usualChrom.png",
+       height = 5, width = 8)
 
 
 
